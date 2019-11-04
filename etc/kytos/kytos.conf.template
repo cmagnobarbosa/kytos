@@ -69,3 +69,8 @@ vlan_pool = {}
 
 # The jwt_secret parameter is responsible for signing JSON Web Tokens.
 jwt_secret = {{ jwt_secret }}
+
+# Default superuser data fields.
+superuser_username = suser
+superuser_password = youshallnotpass
+superuser_email = suser@kytos.io

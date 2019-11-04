@@ -15,9 +15,6 @@ from kytos.core.events import KytosEvent
 __all__ = ['authenticated']
 
 LOG = logging.getLogger(__name__)
-DEFAULT_USERNAME = "suser"
-DEFAULT_PASSWORD = "youshallnotpass"
-DEFAULT_EMAIL = "suser@kytos.io"
 
 
 def authenticated(func):
@@ -62,8 +59,18 @@ class Auth:
     def get_jwt_secret(cls):
         """Return JWT secret defined in kytos conf."""
         options = KytosConfig().options['daemon']
-        serializable_options = vars(options)
-        return serializable_options['jwt_secret']
+        return options.jwt_secret
+
+    @classmethod
+    def get_superuser_fields(cls):
+        """Return Superuser fields defined in kytos conf."""
+        options = KytosConfig().options['daemon']
+        superuser_fields = {
+            "username": options.superuser_username,
+            "password": options.superuser_password,
+            "email": options.superuser_email
+        }
+        return superuser_fields
 
     @classmethod
     def _generate_token(cls, username, time_exp):
@@ -84,10 +91,12 @@ class Auth:
             if box and not error:
                 LOG.info("Superuser successfully created")
 
+        superuser_fields = Auth.get_superuser_fields()
+        encoded_password = superuser_fields["password"].encode()
         user = {
-            "username": DEFAULT_USERNAME,
-            "email": DEFAULT_EMAIL,
-            "password": hashlib.sha512(DEFAULT_PASSWORD.encode()).hexdigest(),
+            "username": superuser_fields["username"],
+            "email": superuser_fields["email"],
+            "password": hashlib.sha512(encoded_password).hexdigest(),
         }
         content = {
             "namespace": self.namespace,
