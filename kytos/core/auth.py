@@ -36,7 +36,7 @@ def authenticated(func):
             jwt.exceptions.DecodeError,
         ) as exc:
             msg = f"Token not sent or expired: {exc}"
-            return jsonify({"error": msg}), 401
+            return jsonify({"error": msg}), HTTPStatus.UNAUTHORIZED.value
         return func(*args, **kwargs)
 
     return wrapper
