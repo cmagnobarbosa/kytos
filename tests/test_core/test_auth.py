@@ -1,7 +1,8 @@
 """Test kytos.core.auth module."""
 import getpass
 from unittest import TestCase
-from unittest.mock import patch
+from unittest.mock import Mock, patch
+from kytos.core.auth import Auth
 
 
 def input_password():
@@ -18,6 +19,22 @@ def input_value():
 
 class TestAuth(TestCase):
     """Auth tests."""
+
+    def setUp(self):
+        """Instant a controller"""
+        self.controller = Mock()
+        self.auth = Auth(self.controller)
+        self.auth._find_user(12)
+
+    def tearDown(self):
+        """TearDown"""
+
+
+    @patch("controller.buffers.app.put")
+    def test_buffer(self, buffer_mock):
+        response = {"answer": "mock test", "code": 201}
+        buffer_mock.__get_item__.return_value = response
+        self.assertEqual(True, True)
 
     @classmethod
     @patch("getpass.getpass")

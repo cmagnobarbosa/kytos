@@ -171,7 +171,7 @@ class Auth:
             "callback": _find_user_callback,
         }
         event = KytosEvent(name="kytos.storehouse.retrieve", content=content)
-        self.controller.buffers.app.put(event)
+        response = self.controller.buffers.app.put(event)
         while True:
             time.sleep(0.1)
             if response:
