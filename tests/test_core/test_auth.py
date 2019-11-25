@@ -1,13 +1,15 @@
 """Test kytos.core.auth module."""
 from unittest import TestCase
 from unittest.mock import Mock
-
+import hashlib
 import requests
 from requests.auth import HTTPBasicAuth
 
 from kytos.core.auth import Auth
 
-API_URI = "http://127.0.0.1:8181/api/kytos/core"
+KYTOS_CORE_API = "http://127.0.0.1:8181/api/kytos/"
+API_URI = KYTOS_CORE_API+"core"
+STOREHOUSE_API_URI = KYTOS_CORE_API+"storehouse/v1/kytos.core.auth.users"
 
 
 class TestAuth(TestCase):
@@ -17,13 +19,14 @@ class TestAuth(TestCase):
         """Instantiate a controller and an Auth."""
         self.controller = Mock()
         self.auth = Auth(self.controller)
+        self.username, self.password = self._create_super_user()
         self.token = self.get_token()
 
-    @classmethod
-    def get_token(cls):
+    def get_token(self):
         """Make a request to get a token to be used in tests"""
         success_response = requests.get(
-            "%s/auth/login/" % API_URI, auth=HTTPBasicAuth("test", "test")
+            "%s/auth/login/" % API_URI, auth=HTTPBasicAuth(
+                self.username, self.password)
         )
         json_response = success_response.json()
         return json_response["token"]
@@ -40,7 +43,8 @@ class TestAuth(TestCase):
     def test_01_login_request(self):
         """Test auth login endpoint"""
         success_response = requests.get(
-            "%s/auth/login/" % API_URI, auth=HTTPBasicAuth("test", "test")
+            "%s/auth/login/" % API_URI, auth=HTTPBasicAuth(
+                self.username, self.password)
         )
         error_response = requests.get(
             "%s/auth/login/" % API_URI,
@@ -125,9 +129,29 @@ class TestAuth(TestCase):
         success_response = requests.delete(
             "%s/auth/users/%s" % (API_URI, "testauth_tempuser"), headers=header
         )
+        success_response_super_user = requests.delete(
+            "%s/auth/users/%s" % (API_URI, self.username), headers=header
+        )
         error_response = requests.delete(
             "%s/auth/users/%s" % (API_URI, "nonexistent"), headers=header
         )
 
         self.assertEqual(success_response.status_code, 200)
+        self.assertEqual(success_response_super_user.status_code, 200)
         self.assertEqual(error_response.status_code, 500)
+
+    @classmethod
+    def _create_super_user(cls):
+        """Create a superuser to integration test."""
+        username = "test"
+        password = "test"
+        email = "test@kytos.io"
+        response = {}
+        user = {
+            "username": username,
+            "email": email,
+            "password": hashlib.sha512(password.encode()).hexdigest(),
+        }
+        response = requests.post(STOREHOUSE_API_URI, json=user)
+        response_json = response.json()
+        return response_json.get('id'), password
