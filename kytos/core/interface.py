@@ -59,7 +59,7 @@ class TAG:
 class Interface(GenericEntity):  # pylint: disable=too-many-instance-attributes
     """Interface Class used to abstract the network interfaces."""
 
-    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-arguments, too-many-public-methods
     def __init__(self, name, port_number, switch, address=None, state=None,
                  features=None, speed=None):
         """Assign the parameters to instance attributes.
